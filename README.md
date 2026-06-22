@@ -88,6 +88,10 @@ type Example struct {
     // This tag is ignored when decoding map-style structs as all fields are optional in
     // map-style structs.
     Field6 string `cborgen:"optional"`
+
+    // Encode this field as a CBOR byte string via the type's
+    // encoding.BinaryMarshaler/BinaryUnmarshaler.
+    Field7 url.URL `cborgen:"binarymarshaler"`
 }
 ```
 
@@ -126,6 +130,7 @@ The library can generate encoders/decoders for:
 - Basic Go types (integers, strings, etc.)
 - Slices, arrays, and maps.
 - Custom types that implement `UnmarshalCBOR` and `MarshalCBOR` (usually generated with this library).
+- Custom types that implement `MarshalBinary` and `UnmarshalBinary`
 - `cid.Cid` from [github.com/ipfs/go-cid](https://github.com/ipfs/go-cid)
 - `big.Int`
 

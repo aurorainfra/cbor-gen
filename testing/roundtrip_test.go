@@ -161,6 +161,17 @@ func testTypeRoundtrips(t *testing.T, typ reflect.Type) {
 	}
 }
 
+func TestBinaryMarshalerTuple(t *testing.T) {
+	testTypeRoundtrips(t, reflect.TypeOf(BinaryMarshalerTuple{}))
+
+	v := &BinaryMarshalerTuple{Val: 42, After: "hello"}
+	testValueRoundtrip(t, v, &BinaryMarshalerTuple{})
+
+	ptr := FixedBinary(1 << 40)
+	v2 := &BinaryMarshalerTuple{Val: 7, ValPtr: &ptr, After: "world"}
+	testValueRoundtrip(t, v2, &BinaryMarshalerTuple{})
+}
+
 func TestDeferredContainer(t *testing.T) {
 	zero := &DeferredContainer{}
 	recepticle := &DeferredContainer{}

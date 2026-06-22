@@ -146,10 +146,11 @@ type Field struct {
 	Pkg     string
 	Const   *string
 
-	OmitEmpty   bool
-	Optional    bool
-	PreserveNil bool
-	IterLabel   string
+	OmitEmpty       bool
+	Optional        bool
+	PreserveNil     bool
+	BinaryMarshaler bool
+	IterLabel       string
 
 	MaxLen int
 }
@@ -333,22 +334,24 @@ func ParseTypeInfo(itype interface{}) (*GenTypeInfo, error) {
 		_, omitempty := tags["omitempty"]
 		_, optional := tags["optional"]
 		_, preservenil := tags["preservenil"]
+		_, binarymarshaler := tags["binarymarshaler"]
 
 		if preservenil && ft.Kind() != reflect.Slice {
 			return nil, fmt.Errorf("%T.%s: preservenil is only supported on slice types", itype, f.Name)
 		}
 
 		out.Fields = append(out.Fields, Field{
-			Name:        f.Name,
-			MapKey:      mapk,
-			Pointer:     pointer,
-			Type:        ft,
-			Pkg:         pkg,
-			OmitEmpty:   omitempty,
-			PreserveNil: preservenil,
-			MaxLen:      usrMaxLen,
-			Const:       constval,
-			Optional:    optional,
+			Name:            f.Name,
+			MapKey:          mapk,
+			Pointer:         pointer,
+			Type:            ft,
+			Pkg:             pkg,
+			OmitEmpty:       omitempty,
+			PreserveNil:     preservenil,
+			BinaryMarshaler: binarymarshaler,
+			MaxLen:          usrMaxLen,
+			Const:           constval,
+			Optional:        optional,
 		})
 	}
 
@@ -388,6 +391,8 @@ func tagparse(v string) (map[string]string, error) {
 			out["ignore"] = "true"
 		} else if elem == "transparent" {
 			out["transparent"] = "true"
+		} else if elem == "binarymarshaler" {
+			out["binarymarshaler"] = "true"
 		} else if elem == "optional" {
 			out["optional"] = "true"
 		} else {
@@ -522,6 +527,50 @@ func (g Gen) emitCborMarshalStructField(w io.Writer, f Field) error {
 	}
 `)
 	}
+}
+
+func (g Gen) emitCborMarshalBinaryMarshalerField(w io.Writer, f Field) error {
+	if f.Pointer {
+		return g.doTemplate(w, f, `
+	if {{ .Name }} == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		data, err := {{ .Name }}.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		if len(data) > {{ MaxLen .MaxLen "Bytes" }} {
+			return xerrors.Errorf("Value in field {{ .Name | js }} was too long")
+		}
+		if err := cw.WriteMajorTypeHeader(cbg.MajByteString, uint64(len(data))); err != nil {
+			return err
+		}
+		if _, err := cw.Write(data); err != nil {
+			return err
+		}
+	}
+`)
+	}
+
+	return g.doTemplate(w, f, `
+	{
+		data, err := {{ .Name }}.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		if len(data) > {{ MaxLen .MaxLen "Bytes" }} {
+			return xerrors.Errorf("Value in field {{ .Name | js }} was too long")
+		}
+		if err := cw.WriteMajorTypeHeader(cbg.MajByteString, uint64(len(data))); err != nil {
+			return err
+		}
+		if _, err := cw.Write(data); err != nil {
+			return err
+		}
+	}
+`)
 }
 
 func (g Gen) emitCborMarshalUint64Field(w io.Writer, f Field) error {
@@ -848,6 +897,13 @@ func (t *{{ .Name }}) MarshalCBOR(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\n\t// %s (%s) (%s)", f.Name, f.Type, f.Type.Kind())
 
+		if f.BinaryMarshaler {
+			if err := g.emitCborMarshalBinaryMarshalerField(w, f); err != nil {
+				return err
+			}
+			continue
+		}
+
 		switch f.Type.Kind() {
 		case reflect.String:
 			if err := g.emitCborMarshalStringField(w, f); err != nil {
@@ -1030,6 +1086,44 @@ func (g Gen) emitCborUnmarshalStructField(w io.Writer, f Field) error {
 	}
 `)
 	}
+}
+
+func (g Gen) emitCborUnmarshalBinaryMarshalerField(w io.Writer, f Field) error {
+	if f.Pointer {
+		return g.doTemplate(w, f, `
+	{
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			data, err := cbg.ReadByteArray(cr, {{ MaxLen .MaxLen "Bytes" }})
+			if err != nil {
+				return err
+			}
+			{{ .Name }} = new({{ .TypeName }})
+			if err := {{ .Name }}.UnmarshalBinary(data); err != nil {
+				return xerrors.Errorf("unmarshaling {{ .Name }}: %w", err)
+			}
+		}
+	}
+`)
+	}
+
+	return g.doTemplate(w, f, `
+	{
+		data, err := cbg.ReadByteArray(cr, {{ MaxLen .MaxLen "Bytes" }})
+		if err != nil {
+			return err
+		}
+		if err := {{ .Name }}.UnmarshalBinary(data); err != nil {
+			return xerrors.Errorf("unmarshaling {{ .Name }}: %w", err)
+		}
+	}
+`)
 }
 
 func (g Gen) emitCborUnmarshalInt64Field(w io.Writer, f Field) error {
@@ -1666,6 +1760,13 @@ func (t *{{ .Name}}) UnmarshalCBOR(r io.Reader) (err error) {
 			fmt.Fprintf(w, "\tif fieldCount < %d {\n\t\treturn nil\n\t}\n", fieldIndex+1)
 		}
 
+		if f.BinaryMarshaler {
+			if err := g.emitCborUnmarshalBinaryMarshalerField(w, f); err != nil {
+				return err
+			}
+			continue
+		}
+
 		switch f.Type.Kind() {
 		case reflect.String:
 			if err := g.emitCborUnmarshalStringField(w, f); err != nil {
@@ -1838,6 +1939,14 @@ func (g Gen) emitCborMarshalStructMap(w io.Writer, gti *GenTypeInfo) error {
 		}
 
 		f.Name = "t." + f.Name
+
+		if f.BinaryMarshaler {
+			if err := g.emitCborMarshalBinaryMarshalerField(w, f); err != nil {
+				return err
+			}
+			goto omitEmpty
+		}
+
 		switch f.Type.Kind() {
 		case reflect.String:
 			if err := g.emitCborMarshalStringField(w, f); err != nil {
@@ -1879,6 +1988,7 @@ func (g Gen) emitCborMarshalStructMap(w io.Writer, gti *GenTypeInfo) error {
 			return fmt.Errorf("field %q of %q has unsupported kind %q", f.Name, gti.Name, f.Type.Kind())
 		}
 
+	omitEmpty:
 		if f.OmitEmpty {
 			if err := g.doTemplate(w, f, "}\n"); err != nil {
 				return err
@@ -1955,6 +2065,13 @@ func (t *{{ .Name}}) UnmarshalCBOR(r io.Reader) (err error) {
 		}
 
 		f.Name = "t." + f.Name
+
+		if f.BinaryMarshaler {
+			if err := g.emitCborUnmarshalBinaryMarshalerField(w, f); err != nil {
+				return err
+			}
+			continue
+		}
 
 		switch f.Type.Kind() {
 		case reflect.String:

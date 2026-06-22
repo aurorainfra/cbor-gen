@@ -2380,3 +2380,137 @@ func (t *TupleWithOptionalFields) UnmarshalCBOR(r io.Reader) (err error) {
 	}
 	return nil
 }
+
+var lengthBufBinaryMarshalerTuple = []byte{131}
+
+func (t *BinaryMarshalerTuple) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write(lengthBufBinaryMarshalerTuple); err != nil {
+		return err
+	}
+
+	// t.Val (testing.FixedBinary) (uint64)
+	{
+		data, err := t.Val.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		if len(data) > 2097152 {
+			return xerrors.Errorf("Value in field t.Val was too long")
+		}
+		if err := cw.WriteMajorTypeHeader(cbg.MajByteString, uint64(len(data))); err != nil {
+			return err
+		}
+		if _, err := cw.Write(data); err != nil {
+			return err
+		}
+	}
+
+	// t.ValPtr (testing.FixedBinary) (uint64)
+	if t.ValPtr == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		data, err := t.ValPtr.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		if len(data) > 2097152 {
+			return xerrors.Errorf("Value in field t.ValPtr was too long")
+		}
+		if err := cw.WriteMajorTypeHeader(cbg.MajByteString, uint64(len(data))); err != nil {
+			return err
+		}
+		if _, err := cw.Write(data); err != nil {
+			return err
+		}
+	}
+
+	// t.After (string) (string)
+	if len(t.After) > 8192 {
+		return xerrors.Errorf("Value in field t.After was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.After))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.After)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *BinaryMarshalerTuple) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = BinaryMarshalerTuple{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajArray {
+		return fmt.Errorf("cbor input should be of type array")
+	}
+
+	if extra != 3 {
+		return fmt.Errorf("cbor input had wrong number of fields")
+	}
+
+	// t.Val (testing.FixedBinary) (uint64)
+
+	{
+		data, err := cbg.ReadByteArray(cr, 2097152)
+		if err != nil {
+			return err
+		}
+		if err := t.Val.UnmarshalBinary(data); err != nil {
+			return xerrors.Errorf("unmarshaling t.Val: %w", err)
+		}
+	}
+	// t.ValPtr (testing.FixedBinary) (uint64)
+
+	{
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			data, err := cbg.ReadByteArray(cr, 2097152)
+			if err != nil {
+				return err
+			}
+			t.ValPtr = new(FixedBinary)
+			if err := t.ValPtr.UnmarshalBinary(data); err != nil {
+				return xerrors.Errorf("unmarshaling t.ValPtr: %w", err)
+			}
+		}
+	}
+	// t.After (string) (string)
+
+	{
+		sval, err := cbg.ReadStringWithMax(cr, 8192)
+		if err != nil {
+			return err
+		}
+
+		t.After = string(sval)
+	}
+	return nil
+}
