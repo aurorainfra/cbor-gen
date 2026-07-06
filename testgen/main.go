@@ -24,6 +24,8 @@ func main() {
 		types.BigIntContainer{},
 		types.TupleWithOptionalFields{},
 		types.BinaryMarshalerTuple{},
+		types.SlicesOfArrays{},
+		types.AllInts{},
 	); err != nil {
 		panic(err)
 	}
