@@ -156,6 +156,17 @@ type Field struct {
 }
 
 func typeName(pkg string, t reflect.Type) string {
+	// A named, user-defined type (e.g. `type SectorID [16]byte`) must be
+	// rendered by its name, not decomposed by its underlying kind. Builtin
+	// types like `[16]byte` and `[]byte` have an empty Name and/or empty
+	// PkgPath and fall through to the kind-based decomposition below.
+	if t.Name() != "" && t.PkgPath() != "" {
+		pkgPath := t.PkgPath()
+		if pkgPath == pkg {
+			return t.Name()
+		}
+		return fmt.Sprintf("%s.%s", resolvePkgName(pkgPath, t.String()), t.Name())
+	}
 	switch t.Kind() {
 	case reflect.Array:
 		return fmt.Sprintf("[%d]%s", t.Len(), typeName(pkg, t.Elem()))

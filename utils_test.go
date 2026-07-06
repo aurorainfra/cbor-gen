@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -248,5 +249,31 @@ func TestTypeSorter(t *testing.T) {
 	_, ok = sortedTypes[2].(TTB)
 	if !ok {
 		t.Errorf("wanted [0]TTB, got %T", sortedTypes[2])
+	}
+}
+
+type namedSectorID [16]byte
+
+func TestTypeNamePreservesNamedArrayTypes(t *testing.T) {
+	const thisPkg = "github.com/whyrusleeping/cbor-gen"
+	cases := []struct {
+		name string
+		pkg  string
+		typ  reflect.Type
+		want string
+	}{
+		{"anonymous [16]byte", "", reflect.TypeOf([16]byte{}), "[16]uint8"},
+		{"anonymous [][16]byte", "", reflect.TypeOf([][16]byte{}), "[][16]uint8"},
+		{"named SectorID same pkg", thisPkg, reflect.TypeOf(namedSectorID{}), "namedSectorID"},
+		{"named []SectorID same pkg", thisPkg, reflect.TypeOf([]namedSectorID{}), "[]namedSectorID"},
+		{"named *SectorID same pkg", thisPkg, reflect.TypeOf((*namedSectorID)(nil)), "*namedSectorID"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got := typeName(c.pkg, c.typ)
+			if got != c.want {
+				t.Fatalf("typeName(%q) = %q, want %q", c.typ, got, c.want)
+			}
+		})
 	}
 }
