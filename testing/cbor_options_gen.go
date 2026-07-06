@@ -125,16 +125,20 @@ func (t *LimitedStruct) UnmarshalCBOR(r io.Reader) (err error) {
 			_ = maj
 			_ = extra
 			_ = err
-
 			{
 
-				maj, extra, err = cr.ReadHeader()
+				maj, extra, err := cr.ReadHeader()
 				if err != nil {
 					return err
 				}
+
 				if maj != cbg.MajUnsignedInt {
 					return fmt.Errorf("wrong type for uint64 field")
 				}
+				if extra > 18446744073709551615 {
+					return fmt.Errorf("t.Arr[i]: value %d too large for uint64", extra)
+				}
+
 				t.Arr[i] = uint64(extra)
 
 			}
