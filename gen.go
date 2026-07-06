@@ -1167,6 +1167,83 @@ func (g Gen) emitCborUnmarshalBinaryMarshalerField(w io.Writer, f Field) error {
 `)
 }
 
+func (g Gen) emitCborUnmarshalIntField(w io.Writer, f Field) error {
+	bits := f.Type.Bits()
+	signed := f.Type.Kind() >= reflect.Int8 && f.Type.Kind() <= reflect.Int64
+
+	// Compute overflow thresholds as literal constants.
+	maxUnsigned := uint64(1)<<uint(bits) - 1
+	maxPositive := uint64(1)<<uint(bits-1) - 1
+	maxNegative := uint64(1)<<uint(bits-1) - 1
+
+	data := struct {
+		Field
+		Signed      bool
+		MaxUnsigned uint64
+		MaxPositive uint64
+		MaxNegative uint64
+	}{Field: f, Signed: signed, MaxUnsigned: maxUnsigned,
+		MaxPositive: maxPositive, MaxNegative: maxNegative}
+
+	return g.doTemplate(w, data, `{
+	{{ if .Pointer }}
+	b, err := cr.ReadByte()
+	if err != nil {
+		return err
+	}
+	if b != cbg.CborNull[0] {
+		if err := cr.UnreadByte(); err != nil {
+			return err
+		}
+	{{ end }}
+		maj, extra, err := {{ ReadHeader "cr" }}
+		if err != nil {
+			return err
+		}
+		{{ if .Signed }}
+		var extraI int64
+		switch maj {
+		case cbg.MajUnsignedInt:
+			if extra > {{ .MaxPositive }} {
+				return fmt.Errorf("{{ .Name }}: value %d too large for {{ .TypeName }}", extra)
+			}
+			extraI = int64(extra)
+		case cbg.MajNegativeInt:
+			if extra > {{ .MaxNegative }} {
+				return fmt.Errorf("{{ .Name }}: value %d too negative for {{ .TypeName }}", extra)
+			}
+			extraI = -1 - int64(extra)
+		default:
+			return fmt.Errorf("wrong type for {{ .TypeName }} field: %d", maj)
+		}
+		{{ else }}
+		if maj != cbg.MajUnsignedInt {
+			return fmt.Errorf("wrong type for {{ .TypeName }} field")
+		}
+		if extra > {{ .MaxUnsigned }} {
+			return fmt.Errorf("{{ .Name }}: value %d too large for {{ .TypeName }}", extra)
+		}
+		{{ end }}
+	{{ if .Pointer }}
+		{{ if .Signed }}
+		typed := {{ .TypeName }}(extraI)
+		{{ .Name }} = &typed
+		{{ else }}
+		typed := {{ .TypeName }}(extra)
+		{{ .Name }} = &typed
+		{{ end }}
+	}
+	{{ else }}
+		{{ if .Signed }}
+		{{ .Name }} = {{ .TypeName }}(extraI)
+		{{ else }}
+		{{ .Name }} = {{ .TypeName }}(extra)
+		{{ end }}
+	{{ end }}
+}
+`)
+}
+
 func (g Gen) emitCborUnmarshalInt64Field(w io.Writer, f Field) error {
 	return g.doTemplate(w, f, `{
 	{{ if .Pointer }}
