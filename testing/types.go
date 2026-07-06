@@ -245,3 +245,9 @@ type BinaryMarshalerTuple struct {
 	ValPtr *FixedBinary `cborgen:"binarymarshaler"`
 	After  string
 }
+
+type SlicesOfArrays struct {
+	ByteArrs [][4]byte
+	IntArrs  [][3]uint64
+	Nested   [][2][3]byte
+}
