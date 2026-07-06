@@ -573,6 +573,43 @@ func (g Gen) emitCborMarshalBinaryMarshalerField(w io.Writer, f Field) error {
 `)
 }
 
+func (g Gen) emitCborMarshalIntField(w io.Writer, f Field) error {
+	signed := f.Type.Kind() >= reflect.Int8 && f.Type.Kind() <= reflect.Int64
+	data := struct {
+		Field
+		Signed bool
+	}{Field: f, Signed: signed}
+
+	return g.doTemplate(w, data, `{{ if .Pointer }}
+	if {{ .Name }} == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		{{ if .Signed }}
+		if {{ (print "*" .Name) }} >= 0 {
+		{{ MajorType "cw" "cbg.MajUnsignedInt" (print "*" .Name) }}
+		} else {
+		{{ MajorType "cw" "cbg.MajNegativeInt" (print "-*" .Name "-1") }}
+		}
+		{{ else }}
+		{{ MajorType "cw" "cbg.MajUnsignedInt" (print "*" .Name) }}
+		{{ end }}
+	}
+{{ else }}
+	{{ if .Signed }}
+	if {{ .Name }} >= 0 {
+	{{ MajorType "cw" "cbg.MajUnsignedInt" .Name }}
+	} else {
+	{{ MajorType "cw" "cbg.MajNegativeInt" (print "-" .Name "-1") }}
+	}
+	{{ else }}
+	{{ MajorType "cw" "cbg.MajUnsignedInt" .Name }}
+	{{ end }}
+{{ end }}
+`)
+}
+
 func (g Gen) emitCborMarshalUint64Field(w io.Writer, f Field) error {
 	return g.doTemplate(w, f, `
 {{ if .Pointer }}
