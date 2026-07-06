@@ -43,6 +43,10 @@ func TestSimpleTypeTwo(t *testing.T) {
 	testTypeRoundtrips(t, reflect.TypeOf(SimpleTypeTwo{}))
 }
 
+func TestSlicesOfArrays(t *testing.T) {
+	testTypeRoundtrips(t, reflect.TypeOf(SlicesOfArrays{}))
+}
+
 func TestSimpleTypeTree(t *testing.T) {
 	testTypeRoundtrips(t, reflect.TypeOf(SimpleTypeTree{}))
 }
