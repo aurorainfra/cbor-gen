@@ -1952,7 +1952,7 @@ func (t *IntArrayNewType) UnmarshalCBOR(r io.Reader) (err error) {
 	}
 
 	if extra > 0 {
-		(*t) = make([]int64, extra)
+		(*t) = make(IntArrayNewType, extra)
 	}
 
 	for i := 0; i < int(extra); i++ {
@@ -2046,7 +2046,7 @@ func (t *IntArrayAliasNewType) UnmarshalCBOR(r io.Reader) (err error) {
 	}
 
 	if extra > 0 {
-		(*t) = make([]IntAlias, extra)
+		(*t) = make(IntArrayAliasNewType, extra)
 	}
 
 	for i := 0; i < int(extra); i++ {
@@ -2158,7 +2158,7 @@ func (t *MapTransparentType) UnmarshalCBOR(r io.Reader) (err error) {
 		return fmt.Errorf("(*t): map too large")
 	}
 
-	(*t) = make(map[string]string, extra)
+	(*t) = make(MapTransparentType, extra)
 
 	for i, l := 0, int(extra); i < l; i++ {
 
