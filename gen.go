@@ -2060,16 +2060,9 @@ func (g Gen) emitCborMarshalStructMap(w io.Writer, gti *GenTypeInfo) error {
 			if err := g.emitCborMarshalStructField(w, f); err != nil {
 				return err
 			}
-		case reflect.Uint64:
-			if err := g.emitCborMarshalUint64Field(w, f); err != nil {
-				return err
-			}
-		case reflect.Int64:
-			if err := g.emitCborMarshalInt64Field(w, f); err != nil {
-				return err
-			}
-		case reflect.Uint8:
-			if err := g.emitCborMarshalUint8Field(w, f); err != nil {
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if err := g.emitCborMarshalIntField(w, f); err != nil {
 				return err
 			}
 		case reflect.Array:
@@ -2186,16 +2179,9 @@ func (t *{{ .Name}}) UnmarshalCBOR(r io.Reader) (err error) {
 			if err := g.emitCborUnmarshalStructField(w, f); err != nil {
 				return err
 			}
-		case reflect.Uint64:
-			if err := g.emitCborUnmarshalUint64Field(w, f); err != nil {
-				return err
-			}
-		case reflect.Int64:
-			if err := g.emitCborUnmarshalInt64Field(w, f); err != nil {
-				return err
-			}
-		case reflect.Uint8:
-			if err := g.emitCborUnmarshalUint8Field(w, f); err != nil {
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if err := g.emitCborUnmarshalIntField(w, f); err != nil {
 				return err
 			}
 		case reflect.Array:
