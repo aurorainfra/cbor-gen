@@ -807,12 +807,9 @@ func (g Gen) emitCborMarshalSliceField(w io.Writer, f Field) error {
 		err = fmt.Errorf("do not yet support slices of %s yet", e.Kind())
 	case reflect.Struct:
 		err = g.emitCborMarshalStructField(w, subf)
-	case reflect.Uint64:
-		err = g.emitCborMarshalUint64Field(w, subf)
-	case reflect.Uint8:
-		err = g.emitCborMarshalUint8Field(w, subf)
-	case reflect.Int64:
-		err = g.emitCborMarshalInt64Field(w, subf)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		err = g.emitCborMarshalIntField(w, subf)
 	case reflect.Slice:
 		err = g.emitCborMarshalSliceField(w, subf)
 	case reflect.Array:
@@ -881,12 +878,9 @@ func (g Gen) emitCborMarshalArrayField(w io.Writer, f Field) error {
 		err = fmt.Errorf("do not yet support arrays of %s yet", e.Kind())
 	case reflect.Struct:
 		err = g.emitCborMarshalStructField(w, subf)
-	case reflect.Uint64:
-		err = g.emitCborMarshalUint64Field(w, subf)
-	case reflect.Uint8:
-		err = g.emitCborMarshalUint8Field(w, subf)
-	case reflect.Int64:
-		err = g.emitCborMarshalInt64Field(w, subf)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		err = g.emitCborMarshalIntField(w, subf)
 	case reflect.Slice:
 		err = g.emitCborMarshalSliceField(w, subf)
 	case reflect.Array:
@@ -1589,24 +1583,14 @@ func (g Gen) emitCborUnmarshalSliceField(w io.Writer, f Field) error {
 		if err != nil {
 			return err
 		}
-	case reflect.Uint64:
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		subf := Field{
 			Type: e,
 			Pkg:  f.Pkg,
 			Name: f.Name + "[" + f.IterLabel + "]",
 		}
-		err := g.emitCborUnmarshalUint64Field(w, subf)
-		if err != nil {
-			return err
-		}
-	case reflect.Int64:
-		subf := Field{
-			Type: e,
-			Pkg:  f.Pkg,
-			Name: f.Name + "[" + f.IterLabel + "]",
-		}
-		err := g.emitCborUnmarshalInt64Field(w, subf)
-		if err != nil {
+		if err := g.emitCborUnmarshalIntField(w, subf); err != nil {
 			return err
 		}
 	case reflect.Array:
@@ -1741,24 +1725,14 @@ func (g Gen) emitCborUnmarshalArrayField(w io.Writer, f Field) error {
 		if err != nil {
 			return err
 		}
-	case reflect.Uint64:
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		subf := Field{
 			Type: e,
 			Pkg:  f.Pkg,
 			Name: f.Name + "[" + f.IterLabel + "]",
 		}
-		err := g.emitCborUnmarshalUint64Field(w, subf)
-		if err != nil {
-			return err
-		}
-	case reflect.Int64:
-		subf := Field{
-			Type: e,
-			Pkg:  f.Pkg,
-			Name: f.Name + "[" + f.IterLabel + "]",
-		}
-		err := g.emitCborUnmarshalInt64Field(w, subf)
-		if err != nil {
+		if err := g.emitCborUnmarshalIntField(w, subf); err != nil {
 			return err
 		}
 	case reflect.Array:
