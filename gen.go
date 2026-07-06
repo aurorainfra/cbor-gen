@@ -778,6 +778,8 @@ func (g Gen) emitCborMarshalSliceField(w io.Writer, f Field) error {
 		err = g.emitCborMarshalInt64Field(w, subf)
 	case reflect.Slice:
 		err = g.emitCborMarshalSliceField(w, subf)
+	case reflect.Array:
+		err = g.emitCborMarshalArrayField(w, subf)
 	case reflect.String:
 		err = g.emitCborMarshalStringField(w, subf)
 	}
