@@ -24,6 +24,7 @@ func main() {
 		types.BigIntContainer{},
 		types.TupleWithOptionalFields{},
 		types.AllInts{},
+		types.AllInts64{},
 	); err != nil {
 		panic(err)
 	}

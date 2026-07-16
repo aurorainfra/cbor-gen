@@ -3038,3 +3038,642 @@ func (t *AllInts) UnmarshalCBOR(r io.Reader) (err error) {
 	}
 	return nil
 }
+
+var lengthBufAllInts64 = []byte{144}
+
+func (t *AllInts64) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write(lengthBufAllInts64); err != nil {
+		return err
+	}
+
+	// t.I8 (int64) (int64)
+	if t.I8 >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.I8)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.I8-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.PI8 (int64) (int64)
+	if t.PI8 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if *t.PI8 >= 0 {
+			if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PI8)); err != nil {
+				return err
+			}
+		} else {
+			if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-*t.PI8-1)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.I16 (int64) (int64)
+	if t.I16 >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.I16)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.I16-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.PI16 (int64) (int64)
+	if t.PI16 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if *t.PI16 >= 0 {
+			if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PI16)); err != nil {
+				return err
+			}
+		} else {
+			if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-*t.PI16-1)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.I32 (int64) (int64)
+	if t.I32 >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.I32)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.I32-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.PI32 (int64) (int64)
+	if t.PI32 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if *t.PI32 >= 0 {
+			if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PI32)); err != nil {
+				return err
+			}
+		} else {
+			if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-*t.PI32-1)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.I64 (int64) (int64)
+	if t.I64 >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.I64)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.I64-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.PI64 (int64) (int64)
+	if t.PI64 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if *t.PI64 >= 0 {
+			if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PI64)); err != nil {
+				return err
+			}
+		} else {
+			if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-*t.PI64-1)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.U8 (uint64) (uint64)
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.U8)); err != nil {
+		return err
+	}
+
+	// t.PU8 (uint64) (uint64)
+
+	if t.PU8 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PU8)); err != nil {
+			return err
+		}
+	}
+
+	// t.U16 (uint64) (uint64)
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.U16)); err != nil {
+		return err
+	}
+
+	// t.PU16 (uint64) (uint64)
+
+	if t.PU16 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PU16)); err != nil {
+			return err
+		}
+	}
+
+	// t.U32 (uint64) (uint64)
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.U32)); err != nil {
+		return err
+	}
+
+	// t.PU32 (uint64) (uint64)
+
+	if t.PU32 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PU32)); err != nil {
+			return err
+		}
+	}
+
+	// t.U64 (uint64) (uint64)
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.U64)); err != nil {
+		return err
+	}
+
+	// t.PU64 (uint64) (uint64)
+
+	if t.PU64 == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(*t.PU64)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *AllInts64) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = AllInts64{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajArray {
+		return fmt.Errorf("cbor input should be of type array")
+	}
+
+	if extra != 16 {
+		return fmt.Errorf("cbor input had wrong number of fields")
+	}
+
+	// t.I8 (int64) (int64)
+	{
+		maj, extra, err := cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		var extraI int64
+		switch maj {
+		case cbg.MajUnsignedInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("value %d is too large for int64", extra)
+			}
+			extraI = int64(extra)
+		case cbg.MajNegativeInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("t.I8: value %d too negative for int64", extra)
+			}
+			extraI = -1 - int64(extra)
+		default:
+			return fmt.Errorf("wrong type for int64 field: %d", maj)
+		}
+
+		t.I8 = int64(extraI)
+	}
+	// t.PI8 (int64) (int64)
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err := cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			var extraI int64
+			switch maj {
+			case cbg.MajUnsignedInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("value %d is too large for int64", extra)
+				}
+				extraI = int64(extra)
+			case cbg.MajNegativeInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("t.PI8: value %d too negative for int64", extra)
+				}
+				extraI = -1 - int64(extra)
+			default:
+				return fmt.Errorf("wrong type for int64 field: %d", maj)
+			}
+
+			typed := int64(extraI)
+			t.PI8 = &typed
+		}
+	}
+	// t.I16 (int64) (int64)
+	{
+		maj, extra, err := cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		var extraI int64
+		switch maj {
+		case cbg.MajUnsignedInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("value %d is too large for int64", extra)
+			}
+			extraI = int64(extra)
+		case cbg.MajNegativeInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("t.I16: value %d too negative for int64", extra)
+			}
+			extraI = -1 - int64(extra)
+		default:
+			return fmt.Errorf("wrong type for int64 field: %d", maj)
+		}
+
+		t.I16 = int64(extraI)
+	}
+	// t.PI16 (int64) (int64)
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err := cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			var extraI int64
+			switch maj {
+			case cbg.MajUnsignedInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("value %d is too large for int64", extra)
+				}
+				extraI = int64(extra)
+			case cbg.MajNegativeInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("t.PI16: value %d too negative for int64", extra)
+				}
+				extraI = -1 - int64(extra)
+			default:
+				return fmt.Errorf("wrong type for int64 field: %d", maj)
+			}
+
+			typed := int64(extraI)
+			t.PI16 = &typed
+		}
+	}
+	// t.I32 (int64) (int64)
+	{
+		maj, extra, err := cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		var extraI int64
+		switch maj {
+		case cbg.MajUnsignedInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("value %d is too large for int64", extra)
+			}
+			extraI = int64(extra)
+		case cbg.MajNegativeInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("t.I32: value %d too negative for int64", extra)
+			}
+			extraI = -1 - int64(extra)
+		default:
+			return fmt.Errorf("wrong type for int64 field: %d", maj)
+		}
+
+		t.I32 = int64(extraI)
+	}
+	// t.PI32 (int64) (int64)
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err := cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			var extraI int64
+			switch maj {
+			case cbg.MajUnsignedInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("value %d is too large for int64", extra)
+				}
+				extraI = int64(extra)
+			case cbg.MajNegativeInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("t.PI32: value %d too negative for int64", extra)
+				}
+				extraI = -1 - int64(extra)
+			default:
+				return fmt.Errorf("wrong type for int64 field: %d", maj)
+			}
+
+			typed := int64(extraI)
+			t.PI32 = &typed
+		}
+	}
+	// t.I64 (int64) (int64)
+	{
+		maj, extra, err := cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		var extraI int64
+		switch maj {
+		case cbg.MajUnsignedInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("value %d is too large for int64", extra)
+			}
+			extraI = int64(extra)
+		case cbg.MajNegativeInt:
+			if extra > 9223372036854775807 {
+				return fmt.Errorf("t.I64: value %d too negative for int64", extra)
+			}
+			extraI = -1 - int64(extra)
+		default:
+			return fmt.Errorf("wrong type for int64 field: %d", maj)
+		}
+
+		t.I64 = int64(extraI)
+	}
+	// t.PI64 (int64) (int64)
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err := cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			var extraI int64
+			switch maj {
+			case cbg.MajUnsignedInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("value %d is too large for int64", extra)
+				}
+				extraI = int64(extra)
+			case cbg.MajNegativeInt:
+				if extra > 9223372036854775807 {
+					return fmt.Errorf("t.PI64: value %d too negative for int64", extra)
+				}
+				extraI = -1 - int64(extra)
+			default:
+				return fmt.Errorf("wrong type for int64 field: %d", maj)
+			}
+
+			typed := int64(extraI)
+			t.PI64 = &typed
+		}
+	}
+	// t.U8 (uint64) (uint64)
+
+	{
+
+		maj, extra, err = cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		if maj != cbg.MajUnsignedInt {
+			return fmt.Errorf("wrong type for uint64 field")
+		}
+		if extra > 18446744073709551615 {
+			return fmt.Errorf("value %d is too large for uint64", extra)
+		}
+		t.U8 = uint64(extra)
+
+	}
+	// t.PU8 (uint64) (uint64)
+
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			if maj != cbg.MajUnsignedInt {
+				return fmt.Errorf("wrong type for uint64 field")
+			}
+			if extra > 18446744073709551615 {
+				return fmt.Errorf("value %d is too large for uint64", extra)
+			}
+			typed := uint64(extra)
+			t.PU8 = &typed
+		}
+
+	}
+	// t.U16 (uint64) (uint64)
+
+	{
+
+		maj, extra, err = cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		if maj != cbg.MajUnsignedInt {
+			return fmt.Errorf("wrong type for uint64 field")
+		}
+		if extra > 18446744073709551615 {
+			return fmt.Errorf("value %d is too large for uint64", extra)
+		}
+		t.U16 = uint64(extra)
+
+	}
+	// t.PU16 (uint64) (uint64)
+
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			if maj != cbg.MajUnsignedInt {
+				return fmt.Errorf("wrong type for uint64 field")
+			}
+			if extra > 18446744073709551615 {
+				return fmt.Errorf("value %d is too large for uint64", extra)
+			}
+			typed := uint64(extra)
+			t.PU16 = &typed
+		}
+
+	}
+	// t.U32 (uint64) (uint64)
+
+	{
+
+		maj, extra, err = cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		if maj != cbg.MajUnsignedInt {
+			return fmt.Errorf("wrong type for uint64 field")
+		}
+		if extra > 18446744073709551615 {
+			return fmt.Errorf("value %d is too large for uint64", extra)
+		}
+		t.U32 = uint64(extra)
+
+	}
+	// t.PU32 (uint64) (uint64)
+
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			if maj != cbg.MajUnsignedInt {
+				return fmt.Errorf("wrong type for uint64 field")
+			}
+			if extra > 18446744073709551615 {
+				return fmt.Errorf("value %d is too large for uint64", extra)
+			}
+			typed := uint64(extra)
+			t.PU32 = &typed
+		}
+
+	}
+	// t.U64 (uint64) (uint64)
+
+	{
+
+		maj, extra, err = cr.ReadHeader()
+		if err != nil {
+			return err
+		}
+		if maj != cbg.MajUnsignedInt {
+			return fmt.Errorf("wrong type for uint64 field")
+		}
+		if extra > 18446744073709551615 {
+			return fmt.Errorf("value %d is too large for uint64", extra)
+		}
+		t.U64 = uint64(extra)
+
+	}
+	// t.PU64 (uint64) (uint64)
+
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+			if maj != cbg.MajUnsignedInt {
+				return fmt.Errorf("wrong type for uint64 field")
+			}
+			if extra > 18446744073709551615 {
+				return fmt.Errorf("value %d is too large for uint64", extra)
+			}
+			typed := uint64(extra)
+			t.PU64 = &typed
+		}
+
+	}
+	return nil
+}

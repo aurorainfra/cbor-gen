@@ -240,3 +240,22 @@ type AllInts struct {
 	U64  uint64
 	PU64 *uint64
 }
+
+type AllInts64 struct {
+	I8   int64
+	PI8  *int64
+	I16  int64
+	PI16 *int64
+	I32  int64
+	PI32 *int64
+	I64  int64
+	PI64 *int64
+	U8   uint64
+	PU8  *uint64
+	U16  uint64
+	PU16 *uint64
+	U32  uint64
+	PU32 *uint64
+	U64  uint64
+	PU64 *uint64
+}
