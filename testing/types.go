@@ -221,3 +221,22 @@ type TupleWithOptionalFields struct {
 	Int3  int64 `cborgen:"optional"`
 	Int4  int64 `cborgen:"optional"`
 }
+
+type AllInts struct {
+	I8   int8
+	PI8  *int8
+	I16  int16
+	PI16 *int16
+	I32  int32
+	PI32 *int32
+	I64  int64
+	PI64 *int64
+	U8   uint8
+	PU8  *uint8
+	U16  uint16
+	PU16 *uint16
+	U32  uint32
+	PU32 *uint32
+	U64  uint64
+	PU64 *uint64
+}
