@@ -68,19 +68,21 @@ type Import struct {
 }
 
 func ImportsForType(currPkg string, t reflect.Type) []Import {
+	// Named types are rendered by name (see typeName), including named
+	// arrays/slices/maps such as ulid.ULID, so they need their own package.
+	// Builtin and unnamed types have an empty PkgPath.
+	var imps []Import
+	if path := t.PkgPath(); path != "" && path != currPkg {
+		imps = []Import{{PkgPath: path, Name: resolvePkgName(path, t.String())}}
+	}
 	switch t.Kind() {
 	case reflect.Array, reflect.Slice, reflect.Ptr:
-		return ImportsForType(currPkg, t.Elem())
+		return dedupImports(append(imps, ImportsForType(currPkg, t.Elem())...))
 	case reflect.Map:
-		return dedupImports(append(ImportsForType(currPkg, t.Key()), ImportsForType(currPkg, t.Elem())...))
+		imps = append(imps, ImportsForType(currPkg, t.Key())...)
+		return dedupImports(append(imps, ImportsForType(currPkg, t.Elem())...))
 	default:
-		path := t.PkgPath()
-		if path == "" || path == currPkg {
-			// built-in or in current package.
-			return nil
-		}
-
-		return []Import{{PkgPath: path, Name: resolvePkgName(path, t.String())}}
+		return imps
 	}
 }
 
