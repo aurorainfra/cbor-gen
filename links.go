@@ -19,12 +19,30 @@ func ScanForLinks(br io.Reader, cb func(cid.Cid)) (err error) {
 	}()
 
 	scratch := make([]byte, maxCidLength)
+	cr := NewCborReader(br)
 	for remaining := uint64(1); remaining > 0; remaining-- {
-		maj, extra, err := CborReadHeaderBuf(br, scratch)
+		// Floats are fixed width, so their payload need not look like a
+		// canonical integer header (e.g. 0.0); skip them before ReadHeader.
+		// cr never holds an unread byte past this point, so br stays in sync.
+		b, err := cr.ReadByte()
 		if err != nil {
 			return err
 		}
 		hasReadOnce = true
+		if n := floatWidth(b); n > 0 {
+			if err := discard(br, n); err != nil {
+				return err
+			}
+			continue
+		}
+		if err := cr.UnreadByte(); err != nil {
+			return err
+		}
+
+		maj, extra, err := cr.ReadHeader()
+		if err != nil {
+			return err
+		}
 
 		switch maj {
 		case MajUnsignedInt, MajNegativeInt, MajOther:

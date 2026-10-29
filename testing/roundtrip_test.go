@@ -873,3 +873,20 @@ func TestUnmarshalExtraFields(t *testing.T) {
 		t.Fatal("encoding mismatch")
 	}
 }
+
+// Zero floats encode with payloads that are not canonical integer headers; a
+// map decoder that doesn't know the keys must still skip them.
+func TestUnmarshalSkipsUnknownFloatFields(t *testing.T) {
+	in := &SimpleTypeTree{
+		Stufff: &SimpleTypeTwo{Float64: 0, Float32: 0, PFloat: ptr(0.0)},
+		PFloat: ptr(0.0),
+	}
+	buf := new(bytes.Buffer)
+	if err := in.MarshalCBOR(buf); err != nil {
+		t.Fatal(err)
+	}
+	var out SimpleStructV1
+	if err := out.UnmarshalCBOR(buf); err != nil {
+		t.Fatal(err)
+	}
+}

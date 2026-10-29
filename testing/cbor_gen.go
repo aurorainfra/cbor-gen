@@ -369,7 +369,7 @@ func (t *SimpleTypeOne) UnmarshalCBOR(r io.Reader) (err error) {
 	return nil
 }
 
-var lengthBufSimpleTypeTwo = []byte{137}
+var lengthBufSimpleTypeTwo = []byte{140}
 
 func (t *SimpleTypeTwo) MarshalCBOR(w io.Writer) error {
 	if t == nil {
@@ -516,6 +516,26 @@ func (t *SimpleTypeTwo) MarshalCBOR(w io.Writer) error {
 			return err
 		}
 	}
+
+	// t.Float64 (float64) (float64)
+	if err := cbg.WriteFloat64(cw, float64(t.Float64)); err != nil {
+		return err
+	}
+
+	// t.Float32 (float32) (float32)
+	if err := cbg.WriteFloat32(cw, float32(t.Float32)); err != nil {
+		return err
+	}
+
+	// t.PFloat (float64) (float64)
+	if t.PFloat == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else if err := cbg.WriteFloat64(cw, float64(*t.PFloat)); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -538,7 +558,7 @@ func (t *SimpleTypeTwo) UnmarshalCBOR(r io.Reader) (err error) {
 		return fmt.Errorf("cbor input should be of type array")
 	}
 
-	if extra != 9 {
+	if extra != 12 {
 		return fmt.Errorf("cbor input had wrong number of fields")
 	}
 
@@ -869,6 +889,50 @@ func (t *SimpleTypeTwo) UnmarshalCBOR(r io.Reader) (err error) {
 		}
 	}
 
+	// t.Float64 (float64) (float64)
+	{
+
+		v, err := cbg.ReadFloat(cr)
+		if err != nil {
+			return err
+		}
+
+		t.Float64 = float64(v)
+
+	}
+	// t.Float32 (float32) (float32)
+	{
+
+		v, err := cbg.ReadFloat(cr)
+		if err != nil {
+			return err
+		}
+
+		t.Float32 = float32(v)
+
+	}
+	// t.PFloat (float64) (float64)
+	{
+
+		b, err := cr.ReadByte()
+		if err != nil {
+			return err
+		}
+		if b != cbg.CborNull[0] {
+			if err := cr.UnreadByte(); err != nil {
+				return err
+			}
+
+			v, err := cbg.ReadFloat(cr)
+			if err != nil {
+				return err
+			}
+
+			typed := float64(v)
+			t.PFloat = &typed
+		}
+
+	}
 	return nil
 }
 

@@ -128,6 +128,7 @@ err := cbg.Gen{
 The library can generate encoders/decoders for:
 
 - Basic Go types (integers, strings, etc.)
+- `float32`/`float64` fields, plain or pointer (written as CBOR single/double; half, single and double are all accepted when decoding). Slices of floats are not supported.
 - Slices, arrays, and maps.
 - Custom types that implement `UnmarshalCBOR` and `MarshalCBOR` (usually generated with this library).
 - Custom types that implement `MarshalBinary` and `UnmarshalBinary`

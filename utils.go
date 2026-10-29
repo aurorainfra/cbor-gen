@@ -563,3 +563,82 @@ func (tas *tnAnySorter) Swap(i, j int) {
 	(*tas)[i] = (*tas)[j]
 	(*tas)[j] = t
 }
+
+// WriteFloat64 writes v as a CBOR double-precision float (0xfb + 8 bytes).
+func WriteFloat64(w io.Writer, v float64) error {
+	var buf [9]byte
+	buf[0] = 0xfb
+	binary.BigEndian.PutUint64(buf[1:], math.Float64bits(v))
+	_, err := w.Write(buf[:])
+	return err
+}
+
+// WriteFloat32 writes v as a CBOR single-precision float (0xfa + 4 bytes).
+func WriteFloat32(w io.Writer, v float32) error {
+	var buf [5]byte
+	buf[0] = 0xfa
+	binary.BigEndian.PutUint32(buf[1:], math.Float32bits(v))
+	_, err := w.Write(buf[:])
+	return err
+}
+
+// floatWidth returns the payload size of a CBOR half/single/double float
+// initial byte, or 0 if b does not start a float.
+func floatWidth(b byte) int {
+	switch b {
+	case 0xf9:
+		return 2
+	case 0xfa:
+		return 4
+	case 0xfb:
+		return 8
+	}
+	return 0
+}
+
+// ReadFloat reads a CBOR half, single or double precision float.
+func ReadFloat(cr *CborReader) (float64, error) {
+	b, err := cr.ReadByte()
+	if err != nil {
+		return 0, err
+	}
+	n := floatWidth(b)
+	if n == 0 {
+		return 0, fmt.Errorf("expected cbor float (major type 7, 0xf9/0xfa/0xfb), got initial byte %x", b)
+	}
+	var buf [8]byte
+	if _, err := io.ReadFull(cr, buf[:n]); err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+		return 0, err
+	}
+	switch n {
+	case 2:
+		return halfToFloat64(binary.BigEndian.Uint16(buf[:2])), nil
+	case 4:
+		return float64(math.Float32frombits(binary.BigEndian.Uint32(buf[:4]))), nil
+	default:
+		return math.Float64frombits(binary.BigEndian.Uint64(buf[:8])), nil
+	}
+}
+
+func halfToFloat64(h uint16) float64 {
+	sign := 1.0
+	if h&0x8000 != 0 {
+		sign = -1
+	}
+	exp := int(h>>10) & 0x1f
+	mant := float64(h & 0x3ff)
+	switch exp {
+	case 0:
+		return sign * math.Ldexp(mant, -24)
+	case 0x1f:
+		if mant == 0 {
+			return math.Inf(int(sign))
+		}
+		return math.NaN()
+	default:
+		return sign * math.Ldexp(mant+1024, exp-25)
+	}
+}

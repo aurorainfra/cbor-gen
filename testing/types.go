@@ -40,6 +40,9 @@ type SimpleTypeTwo struct {
 	Pizza        *uint64
 	PointyPizza  *NamedNumber
 	Arrrrrghay   [Thingc]SimpleTypeOne
+	Float64      float64
+	Float32      float32
+	PFloat       *float64
 }
 
 type SimpleTypeTree struct {
@@ -52,6 +55,9 @@ type SimpleTypeTree struct {
 	NotPizza                         *uint64
 	StringPtr                        *string
 	BoolPtr                          *bool
+	Float64                          float64
+	Float32                          float32
+	PFloat                           *float64
 }
 
 type SimpleStructV1 struct {

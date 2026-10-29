@@ -26,7 +26,7 @@ func (t *SimpleTypeTree) MarshalCBOR(w io.Writer) error {
 
 	cw := cbg.NewCborWriter(w)
 
-	if _, err := cw.Write([]byte{169}); err != nil {
+	if _, err := cw.Write([]byte{172}); err != nil {
 		return err
 	}
 
@@ -130,6 +130,26 @@ func (t *SimpleTypeTree) MarshalCBOR(w io.Writer) error {
 
 	}
 
+	// t.PFloat (float64) (float64)
+	if len("PFloat") > 8192 {
+		return xerrors.Errorf("Value in field \"PFloat\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("PFloat"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("PFloat")); err != nil {
+		return err
+	}
+
+	if t.PFloat == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else if err := cbg.WriteFloat64(cw, float64(*t.PFloat)); err != nil {
+		return err
+	}
+
 	// t.Stufff (testing.SimpleTypeTwo) (struct)
 	if len("Stufff") > 8192 {
 		return xerrors.Errorf("Value in field \"Stufff\" was too long")
@@ -166,6 +186,38 @@ func (t *SimpleTypeTree) MarshalCBOR(w io.Writer) error {
 		if err := cbg.WriteBool(w, *t.BoolPtr); err != nil {
 			return err
 		}
+	}
+
+	// t.Float32 (float32) (float32)
+	if len("Float32") > 8192 {
+		return xerrors.Errorf("Value in field \"Float32\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("Float32"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("Float32")); err != nil {
+		return err
+	}
+
+	if err := cbg.WriteFloat32(cw, float32(t.Float32)); err != nil {
+		return err
+	}
+
+	// t.Float64 (float64) (float64)
+	if len("Float64") > 8192 {
+		return xerrors.Errorf("Value in field \"Float64\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("Float64"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("Float64")); err != nil {
+		return err
+	}
+
+	if err := cbg.WriteFloat64(cw, float64(t.Float64)); err != nil {
+		return err
 	}
 
 	// t.NotPizza (uint64) (uint64)
@@ -417,6 +469,29 @@ func (t *SimpleTypeTree) UnmarshalCBOR(r io.Reader) (err error) {
 
 				}
 			}
+			// t.PFloat (float64) (float64)
+		case "PFloat":
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					v, err := cbg.ReadFloat(cr)
+					if err != nil {
+						return err
+					}
+
+					typed := float64(v)
+					t.PFloat = &typed
+				}
+
+			}
 			// t.Stufff (testing.SimpleTypeTwo) (struct)
 		case "Stufff":
 
@@ -469,6 +544,30 @@ func (t *SimpleTypeTree) UnmarshalCBOR(r io.Reader) (err error) {
 					}
 					t.BoolPtr = &val
 				}
+			}
+			// t.Float32 (float32) (float32)
+		case "Float32":
+			{
+
+				v, err := cbg.ReadFloat(cr)
+				if err != nil {
+					return err
+				}
+
+				t.Float32 = float32(v)
+
+			}
+			// t.Float64 (float64) (float64)
+		case "Float64":
+			{
+
+				v, err := cbg.ReadFloat(cr)
+				if err != nil {
+					return err
+				}
+
+				t.Float64 = float64(v)
+
 			}
 			// t.NotPizza (uint64) (uint64)
 		case "NotPizza":

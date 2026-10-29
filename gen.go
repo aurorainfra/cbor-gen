@@ -643,6 +643,28 @@ func (g Gen) emitCborMarshalBoolField(w io.Writer, f Field) error {
 	}
 }
 
+func (g Gen) emitCborMarshalFloatField(w io.Writer, f Field) error {
+	data := struct {
+		Field
+		Bits int
+	}{Field: f, Bits: f.Type.Bits()}
+
+	return g.doTemplate(w, data, `{{ if .Pointer }}
+	if {{ .Name }} == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else if err := cbg.WriteFloat{{ .Bits }}(cw, float{{ .Bits }}(*{{ .Name }})); err != nil {
+		return err
+	}
+{{ else }}
+	if err := cbg.WriteFloat{{ .Bits }}(cw, float{{ .Bits }}({{ .Name }})); err != nil {
+		return err
+	}
+{{ end }}
+`)
+}
+
 func (g Gen) emitCborMarshalMapField(w io.Writer, f Field) error {
 	err := g.doTemplate(w, f, `
 {
@@ -923,6 +945,10 @@ func (t *{{ .Name }}) MarshalCBOR(w io.Writer) error {
 			}
 		case reflect.Bool:
 			if err := g.emitCborMarshalBoolField(w, f); err != nil {
+				return err
+			}
+		case reflect.Float32, reflect.Float64:
+			if err := g.emitCborMarshalFloatField(w, f); err != nil {
 				return err
 			}
 		case reflect.Map:
@@ -1244,6 +1270,33 @@ func (g Gen) emitCborUnmarshalBoolField(w io.Writer, f Field) error {
 	}
 `)
 	}
+}
+
+func (g Gen) emitCborUnmarshalFloatField(w io.Writer, f Field) error {
+	return g.doTemplate(w, f, `{
+	{{ if .Pointer }}
+	b, err := cr.ReadByte()
+	if err != nil {
+		return err
+	}
+	if b != cbg.CborNull[0] {
+		if err := cr.UnreadByte(); err != nil {
+			return err
+		}
+	{{ end }}
+		v, err := cbg.ReadFloat(cr)
+		if err != nil {
+			return err
+		}
+	{{ if .Pointer }}
+		typed := {{ .TypeName }}(v)
+		{{ .Name }} = &typed
+	}
+	{{ else }}
+		{{ .Name }} = {{ .TypeName }}(v)
+	{{ end }}
+}
+`)
 }
 
 func (g Gen) emitCborUnmarshalMapField(w io.Writer, f Field) error {
@@ -1745,6 +1798,10 @@ func (t *{{ .Name}}) UnmarshalCBOR(r io.Reader) (err error) {
 			if err := g.emitCborUnmarshalBoolField(w, f); err != nil {
 				return err
 			}
+		case reflect.Float32, reflect.Float64:
+			if err := g.emitCborUnmarshalFloatField(w, f); err != nil {
+				return err
+			}
 		case reflect.Map:
 			if err := g.emitCborUnmarshalMapField(w, f); err != nil {
 				return err
@@ -1918,6 +1975,10 @@ func (g Gen) emitCborMarshalStructMap(w io.Writer, gti *GenTypeInfo) error {
 			if err := g.emitCborMarshalBoolField(w, f); err != nil {
 				return err
 			}
+		case reflect.Float32, reflect.Float64:
+			if err := g.emitCborMarshalFloatField(w, f); err != nil {
+				return err
+			}
 		case reflect.Map:
 			if err := g.emitCborMarshalMapField(w, f); err != nil {
 				return err
@@ -2035,6 +2096,10 @@ func (t *{{ .Name}}) UnmarshalCBOR(r io.Reader) (err error) {
 			}
 		case reflect.Bool:
 			if err := g.emitCborUnmarshalBoolField(w, f); err != nil {
+				return err
+			}
+		case reflect.Float32, reflect.Float64:
+			if err := g.emitCborUnmarshalFloatField(w, f); err != nil {
 				return err
 			}
 		case reflect.Map:
